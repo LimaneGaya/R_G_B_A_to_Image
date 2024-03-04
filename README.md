@@ -1,16 +1,10 @@
 # r_g_b_to_image
 
-A new Flutter project.
+Merging different images into R G B A channels. Images have to be of the same resolution.
 
-## Getting Started
+![Copie d'écran_20240304_140731](https://github.com/LimaneGaya/R_G_B_A_to_Image/assets/36268750/d2b5e276-68df-4c2f-9654-dc452d04493e)
 
-This project is a starting point for a Flutter application.
+Exported Image:
 
-A few resources to get you started if this is your first Flutter project:
+![output](https://github.com/LimaneGaya/R_G_B_A_to_Image/assets/36268750/843f4ca7-2bc4-4512-b12d-5594ba4e1d5c)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

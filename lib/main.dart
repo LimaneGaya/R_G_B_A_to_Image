@@ -53,19 +53,54 @@ class _RGBtoImageState extends State<RGBtoImage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final img.Image redImg =
-              img.decodeImage(File(red!.path).readAsBytesSync())!;
-          final img.Image greenImg =
-              img.decodeImage(File(green!.path).readAsBytesSync())!;
-          final img.Image blueImg =
-              img.decodeImage(File(blue!.path).readAsBytesSync())!;
-          final img.Image alphaImg =
-              img.decodeImage(File(alpha!.path).readAsBytesSync())!;
-          final img.Image image =
-              img.Image(width: redImg.width, height: redImg.height);
-
-          img.copyImageChannels(image,
-              from: redImg, scaled: true, red: img.Channel.red);
+          final img.Image? redImg = red != null
+              ? img.decodeImage(File(red!.path).readAsBytesSync())
+              : null;
+          final img.Image? greenImg = green != null
+              ? img.decodeImage(File(green!.path).readAsBytesSync())
+              : null;
+          final img.Image? blueImg = blue != null
+              ? img.decodeImage(File(blue!.path).readAsBytesSync())
+              : null;
+          final img.Image? alphaImg = alpha != null
+              ? img.decodeImage(File(alpha!.path).readAsBytesSync())
+              : null;
+          final img.Image image = img.Image(
+              width: redImg?.width ??
+                  greenImg?.width ??
+                  blueImg?.width ??
+                  alphaImg?.width ??
+                  1024,
+              height: redImg?.height ??
+                  greenImg?.height ??
+                  blueImg?.height ??
+                  alphaImg?.height ??
+                  1024);
+          for (img.Pixel pixel in image) {
+            final redData = redImg?.getPixel(pixel.x, pixel.y);
+            final greenData = greenImg?.getPixel(pixel.x, pixel.y);
+            final blueData = blueImg?.getPixel(pixel.x, pixel.y);
+            final alphaData = alphaImg?.getPixel(pixel.x, pixel.y);
+            int division = 0;
+            division = redData != null ? division + 1 : division;
+            division = greenData != null ? division + 1 : division;
+            division = blueData != null ? division + 1 : division;
+            pixel.r =
+                ((redData?.r ?? 0) + (redData?.g ?? 0) + (redData?.b ?? 0)) /
+                    division;
+            pixel.g = ((greenData?.r ?? 0) +
+                    (greenData?.g ?? 0) +
+                    (greenData?.b ?? 0)) /
+                division;
+            pixel.b =
+                ((blueData?.r ?? 0) + (blueData?.g ?? 0) + (blueData?.b ?? 0)) /
+                    division;
+            pixel.a = alphaData == null
+                ? 255
+                : (alphaData.r + alphaData.g + alphaData.b) / 3;
+          }
+          final bytes = img.encodePng(image, level: 9);
+          await File('output.png').writeAsBytes(bytes);
         },
         child: const Icon(Icons.output),
       ),
@@ -91,8 +126,14 @@ class _RGBtoImageState extends State<RGBtoImage> {
                           red == null
                               ? Container(
                                   width: 100, height: 100, color: Colors.red)
-                              : Image.file(File(red!.path),
-                                  width: 100, height: 100),
+                              : Stack(children: [
+                                  Image.file(File(red!.path),
+                                      width: 100, height: 100),
+                                  IconButton(
+                                      onPressed: () =>
+                                          setState(() => red = null),
+                                      icon: const Icon(Icons.close))
+                                ]),
                           const Text("Red"),
                           Text(red?.name ?? ""),
                         ],
@@ -112,8 +153,15 @@ class _RGBtoImageState extends State<RGBtoImage> {
                           green == null
                               ? Container(
                                   width: 100, height: 100, color: Colors.green)
-                              : Image.file(File(green!.path),
-                                  width: 100, height: 100),
+                              : Stack(children: [
+                                  Image.file(File(green!.path),
+                                      width: 100, height: 100),
+                                  IconButton(
+                                    onPressed: () =>
+                                        setState(() => green = null),
+                                    icon: const Icon(Icons.close),
+                                  )
+                                ]),
                           const Text("Green"),
                           Text(green?.name ?? ""),
                         ],
@@ -133,8 +181,15 @@ class _RGBtoImageState extends State<RGBtoImage> {
                           blue == null
                               ? Container(
                                   width: 100, height: 100, color: Colors.blue)
-                              : Image.file(File(blue!.path),
-                                  width: 100, height: 100),
+                              : Stack(children: [
+                                  Image.file(File(blue!.path),
+                                      width: 100, height: 100),
+                                  IconButton(
+                                    onPressed: () =>
+                                        setState(() => blue = null),
+                                    icon: const Icon(Icons.close),
+                                  )
+                                ]),
                           const Text("Blue"),
                           Text(blue?.name ?? ""),
                         ],
@@ -154,8 +209,15 @@ class _RGBtoImageState extends State<RGBtoImage> {
                           alpha == null
                               ? Container(
                                   width: 100, height: 100, color: Colors.white)
-                              : Image.file(File(alpha!.path),
-                                  width: 100, height: 100),
+                              : Stack(children: [
+                                  Image.file(File(alpha!.path),
+                                      width: 100, height: 100),
+                                  IconButton(
+                                    onPressed: () =>
+                                        setState(() => alpha = null),
+                                    icon: const Icon(Icons.close),
+                                  )
+                                ]),
                           const Text("Alpha"),
                           Text(alpha?.name ?? ""),
                         ],
@@ -193,10 +255,31 @@ class _RGBtoImageState extends State<RGBtoImage> {
                                   width: 200,
                                   height: 200,
                                 ),
-                                child: Image.file(
-                                  File(files[index].path),
-                                  width: 200,
-                                  height: 200,
+                                child: Stack(
+                                  children: [
+                                    Image.file(
+                                      File(files[index].path),
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                    IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            files.removeAt(index);
+                                          });
+                                        },
+                                        icon: const Icon(Icons.close)),
+                                    Align(
+                                        alignment: Alignment.bottomCenter,
+                                        child: Text(
+                                          files[index].name,
+                                          style: const TextStyle(shadows: [
+                                            Shadow(blurRadius: 1),
+                                            Shadow(blurRadius: 5),
+                                            Shadow(blurRadius: 8),
+                                          ]),
+                                        ))
+                                  ],
                                 )));
                       },
                     ),
